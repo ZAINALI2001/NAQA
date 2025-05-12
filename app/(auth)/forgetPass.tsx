@@ -14,6 +14,7 @@ import CustomButton from "@/components/CustomButton";
 import { useState } from "react";
 import { sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "@/includes/FirebaseConfig";
+import { Feather } from "@expo/vector-icons";
 
 // Optional: LTR mode
 I18nManager.forceRTL(false);
@@ -55,6 +56,12 @@ const ForgetPass = () => {
       <View style={{ flex: 1 }}>
         <View style={{ height: 60 }} />
         <View style={{ paddingHorizontal: 24, paddingTop: 40 }}>
+        <View style={styles.topBar}>
+          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+            <Feather name="arrow-left" size={24} color="#fff" />
+          </TouchableOpacity>
+        </View>
+        
           <Text style={styles.title}>Reset your password</Text>
 
           <InputField
@@ -95,13 +102,24 @@ const ForgetPass = () => {
 export default ForgetPass;
 
 const styles = StyleSheet.create({
+  topBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 30,
+  },
+  backButton: {
+    backgroundColor: "#1779AE",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+  },
   title: {
     fontSize: 24,
     fontWeight: "bold",
     textAlign: "left",
     marginBottom: 30,
     color: "#000",
-    marginTop: 60,
+    // marginTop: 60,
   },
   buttonText: {
     fontWeight: "bold",

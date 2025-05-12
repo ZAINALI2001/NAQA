@@ -7,12 +7,14 @@ import {
   ActivityIndicator,
   ScrollView,
   StyleSheet,
+  TouchableOpacity,
 } from "react-native";
 import CustomButton from "@/components/CustomButton";
 import InputField from "@/components/InputField";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth, firestore } from "@/includes/FirebaseConfig";
 import { doc, setDoc } from "firebase/firestore";
+import { Feather } from "@expo/vector-icons";
 
 const SignUp = () => {
   const [name, setName] = useState("");
@@ -63,6 +65,11 @@ const SignUp = () => {
       <View style={styles.innerContainer}>
         <View style={styles.topSpace} />
         <View style={styles.content}>
+        <View style={styles.topBar}>
+          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+            <Feather name="arrow-left" size={24} color="#fff" />
+          </TouchableOpacity>
+        </View>
           <View style={styles.titleContainer}>
             <Text style={styles.title}>Create Account</Text>
           </View>
@@ -139,12 +146,23 @@ const styles = StyleSheet.create({
   innerContainer: {
     flex: 1,
   },
+  topBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 30,
+  },
+  backButton: {
+    backgroundColor: "#1779AE",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+  },
   topSpace: {
     height: 60,
   },
   content: {
     paddingHorizontal: 24,
-    paddingTop: 80,
+    paddingTop: 40,
   },
   titleContainer: {
     paddingHorizontal: 24,

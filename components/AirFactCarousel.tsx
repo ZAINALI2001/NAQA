@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
 
 const facts = [
@@ -10,7 +10,7 @@ const facts = [
 
 const AirFactCarousel = () => {
   const [index, setIndex] = useState(0);
-  const fadeAnim = new Animated.Value(0);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     const cycle = setInterval(() => {
@@ -39,7 +39,8 @@ export default AirFactCarousel;
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#D1EAF2',
+    backgroundColor: '#fff',
+    // backgroundColor: '#E5F4FC',
     padding: 10,
     borderRadius: 10,
     marginTop: 15,

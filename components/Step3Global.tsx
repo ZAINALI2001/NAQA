@@ -122,7 +122,7 @@ export default function Step3Global({ formData, setFormData, onNext, onBack }: P
 const styles = StyleSheet.create({
     container: {
         padding: 20,
-        paddingBottom: 30,
+        paddingBottom: 50,
     },
     title: {
         fontSize: 24,

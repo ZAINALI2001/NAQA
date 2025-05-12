@@ -67,7 +67,7 @@ export default function Home() {
       const isRecent = deviceLastSeen > 0 && now - deviceLastSeen < 30000;
 
       if (!val || !val.temp || !val.MQ135 || !isRecent) {
-        setDeviceConnected(true);
+        setDeviceConnected(false);
         return;
       }
 
@@ -185,6 +185,7 @@ export default function Home() {
               </Animated.View>
 
               <SmartTipBanner />
+              
               <View style={styles.sensorRow}>
                 <SensorBox label="Temperature" value={`${temp}°C`} icon="🌡️" />
                 <SensorBox label="Humidity" value={`${humidity}%`} icon="💧" />

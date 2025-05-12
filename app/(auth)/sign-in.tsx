@@ -145,8 +145,10 @@ const styles = StyleSheet.create({
   },
   forgotText: {
     fontSize: 14,
-    color: "#FF914D",
+    color: "#1779AE",
     textAlign: "left",
+    marginBottom: 20,
+    fontWeight: "bold",
   },
   buttonText: {
     fontWeight: "bold",

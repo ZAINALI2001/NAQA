@@ -48,7 +48,7 @@ export default EducationSection;
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#E5F4FC',
+    backgroundColor: '#fff',
     padding: 14,
     borderRadius: 12,
     marginTop: 20,

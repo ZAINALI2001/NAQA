@@ -17,18 +17,26 @@ import {
   getDoc,
   updateDoc,
 } from "@/includes/FirebaseConfig";
+import {
+  updatePassword,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
+} from "firebase/auth";
 import { LinearGradient } from "expo-linear-gradient";
 
 export default function EditProfile({ onback }: { onback: () => void }) {
   const [name, setName] = useState("");
   const [initialName, setInitialName] = useState("");
+  const [password, setPassword] = useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   const user = auth.currentUser;
 
   useEffect(() => {
-    const fetchUserName = async () => {
+    const fetchUserData = async () => {
       if (!user) return;
       try {
         const userDoc = await getDoc(doc(firestore, "users", user.uid));
@@ -43,8 +51,14 @@ export default function EditProfile({ onback }: { onback: () => void }) {
         setLoading(false);
       }
     };
-    fetchUserName();
+    fetchUserData();
   }, []);
+
+  const reauthenticate = async () => {
+    if (!user || !user.email) return;
+    const credential = EmailAuthProvider.credential(user.email, currentPassword);
+    await reauthenticateWithCredential(user, credential);
+  };
 
   const handleSave = async () => {
     if (!user) return;
@@ -54,16 +68,47 @@ export default function EditProfile({ onback }: { onback: () => void }) {
       return;
     }
 
+    const wantsToChangePassword = password.length > 0;
+
+    if (wantsToChangePassword && currentPassword.length < 6) {
+      Alert.alert("Authentication Required", "Please enter your current password.");
+      return;
+    }
+
     setSaving(true);
     try {
+      // Reauthenticate if password change is requested
+      if (wantsToChangePassword) {
+        try {
+          await reauthenticate();
+        } catch (err: any) {
+          console.error("Reauthentication failed:", err);
+          setSaving(false);
+          Alert.alert("Authentication Failed", "Your current password is incorrect.");
+          return;
+        }
+      }
+
+      // Update name if changed
       if (name !== initialName) {
         await updateDoc(doc(firestore, "users", user.uid), { name });
       }
 
-      Alert.alert("Success", "Profile updated successfully.");
+      // Update password
+      if (wantsToChangePassword) {
+        if (password.length < 6) {
+          Alert.alert("Weak password", "Password must be at least 6 characters.");
+          setSaving(false);
+          return;
+        }
+        await updatePassword(user, password);
+      }
+
+      Alert.alert("✅ Success", "Profile updated successfully.");
       onback();
     } catch (error: any) {
-      Alert.alert("Error", "Failed to update profile.");
+      console.error("Update error:", error);
+      Alert.alert("Error", error.message || "Failed to update profile.");
     } finally {
       setSaving(false);
     }
@@ -76,6 +121,8 @@ export default function EditProfile({ onback }: { onback: () => void }) {
       </View>
     );
   }
+
+  const showCurrentPassword = password.length > 0;
 
   return (
     <LinearGradient
@@ -91,6 +138,7 @@ export default function EditProfile({ onback }: { onback: () => void }) {
 
         <Text style={styles.title}>Edit Profile</Text>
 
+        {/* Name */}
         <Text style={styles.label}>Your Name</Text>
         <TextInput
           style={styles.input}
@@ -99,6 +147,31 @@ export default function EditProfile({ onback }: { onback: () => void }) {
           onChangeText={setName}
         />
 
+        {/* New Password */}
+        <Text style={styles.label}>New Password (optional)</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter new password"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+        />
+
+        {/* Current Password (only if updating password) */}
+        {showCurrentPassword && (
+          <>
+            <Text style={styles.label}>Current Password (required)</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Enter current password"
+              value={currentPassword}
+              onChangeText={setCurrentPassword}
+              secureTextEntry
+            />
+          </>
+        )}
+
+        {/* Save Button */}
         <TouchableOpacity
           style={styles.saveButton}
           onPress={handleSave}
