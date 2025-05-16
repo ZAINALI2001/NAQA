@@ -179,6 +179,7 @@ export default function Step2Transportation({ formData, setFormData, onNext, onB
                   style={styles.input}
                   keyboardType="numeric"
                   placeholder="e.g. 35"
+                  placeholderTextColor="#888"
                   value={entry.distance}
                   onChangeText={(text) => handleDistanceChange(text, index)}
                 />

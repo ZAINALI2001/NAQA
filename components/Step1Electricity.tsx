@@ -122,6 +122,7 @@ export default function Step1Electricity({ formData, setFormData, onNext, onBack
                                         style={styles.input}
                                         keyboardType="numeric"
                                         placeholder={`e.g. 1200 (${unit})`}
+                                        placeholderTextColor="#888"
                                         value={formData[indecator.Indecator_Name]?.toString() || ''}
                                         onChangeText={(text) =>
                                             setFormData((prev: any) => ({

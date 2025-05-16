@@ -98,6 +98,7 @@ export default function Step3Global({ formData, setFormData, onNext, onBack }: P
                                 style={styles.input}
                                 keyboardType="numeric"
                                 placeholder="e.g. 3"
+                                placeholderTextColor="#888"
                                 value={formData[item.Indecator_Name]?.toString() || ''}
                                 onChangeText={(text) =>
                                     setFormData((prev: any) => ({
