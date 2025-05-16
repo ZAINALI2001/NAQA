@@ -1,11 +1,12 @@
 import React from 'react';
-import { View, Text, StyleSheet, Alert, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Alert, ScrollView, TouchableOpacity } from 'react-native';
 import CustomButton from '@/components/CustomButton';
 import { auth, firestore } from '@/includes/FirebaseConfig';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import StatsComparison from '@/components/StatsComparison';
 import StatsComparisonChart from '@/components/StatsComparisonChart';
 import EnvironmentalTips from '@/components/EnvironmentalTips';
+import { Ionicons } from '@expo/vector-icons';
 
 interface Props {
   formData: any;
@@ -43,40 +44,48 @@ export default function Step5Final({ formData, onRestart, onBack }: Props) {
   const totalEmissionsTonnes = convertKgToTonnes(totalEmissionsKg);
   const totalEmissionsStr = totalEmissionsTonnes.toFixed(3);
 
-  const getClassification = (value: number): 'Excellent' | 'Good' | 'Moderate' | 'Poor' => {
-    if (value < 3) return 'Excellent';
-    if (value < 7) return 'Good';
-    if (value < 12) return 'Moderate';
-    return 'Poor';
-  };
+  const getClassification = (value: number, days: number): 'Excellent' | 'Good' | 'Moderate' | 'Poor' => {
+  const factor = days / 365;
 
-  const classification = getClassification(totalEmissionsTonnes);
+  const excellentThreshold = 3 * factor;
+  const goodThreshold = 7 * factor;
+  const moderateThreshold = 12 * factor;
+
+  if (value < excellentThreshold) return 'Excellent';
+  if (value < goodThreshold) return 'Good';
+  if (value < moderateThreshold) return 'Moderate';
+  return 'Poor';
+};
+
+
+const days = getNumberOfDaysInPeriod();
+const classification = getClassification(totalEmissionsTonnes, days);
 
   const getCardStyle = () => {
     switch (classification) {
       case 'Excellent':
         return {
-          backgroundColor: '#E6F7EC',
-          borderColor: '#7CD992',
-          textColor: '#237804',
+          backgroundColor: '#E0F7E9',
+          borderColor: '#66BB6A',
+          textColor: '#1B5E20',
         };
       case 'Good':
         return {
-          backgroundColor: '#FFFBE6',
-          borderColor: '#FFD666',
-          textColor: '#AD8B00',
+          backgroundColor: '#FFF8E1',
+          borderColor: '#FFCA28',
+          textColor: '#F57F17',
         };
       case 'Moderate':
         return {
-          backgroundColor: '#FFF1F0',
-          borderColor: '#FFA39E',
-          textColor: '#D4380D',
+          backgroundColor: '#FFF3E0',
+          borderColor: '#FFB74D',
+          textColor: '#E65100',
         };
       case 'Poor':
         return {
-          backgroundColor: '#FDEDED',
-          borderColor: '#F5222D',
-          textColor: '#A8071A',
+          backgroundColor: '#FFEBEE',
+          borderColor: '#EF5350',
+          textColor: '#B71C1C',
         };
       default:
         return {
@@ -86,6 +95,7 @@ export default function Step5Final({ formData, onRestart, onBack }: Props) {
         };
     }
   };
+
 
   const { backgroundColor, borderColor, textColor } = getCardStyle();
 
@@ -126,9 +136,25 @@ export default function Step5Final({ formData, onRestart, onBack }: Props) {
     }
   };
 
+  const getHeaderTitle = (classification: string): string => {
+    switch (classification) {
+      case 'Excellent':
+        return '🌱 Outstanding Effort!';
+      case 'Good':
+        return '✅ Nice Work!';
+      case 'Moderate':
+        return '⚠️ Room to Improve';
+      case 'Poor':
+        return '🚨 Let’s Work on It';
+      default:
+        return '📊 Your Carbon Summary';
+    }
+  };
+
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>🎉 Great Job!</Text>
+      <Text style={styles.title}>{getHeaderTitle(classification)}</Text>
       <Text style={styles.subtitle}>Here’s your personalized footprint summary 🌍</Text>
 
       {/* Result Card with Dynamic Colors */}
@@ -165,6 +191,18 @@ export default function Step5Final({ formData, onRestart, onBack }: Props) {
         <CustomButton title="⬅️ Back" onPress={onBack} className="w-full" />
         <CustomButton title="🔁 Restart" onPress={onRestart} className="w-full" />
       </View>
+      {/* <TouchableOpacity style={styles.button} onPress={handleSave}>
+        <Ionicons name="save-outline" size={20} color="#fff" style={{ marginRight: 8 }} />
+        <Text style={styles.buttonText}>Save Footprint</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.button} onPress={onBack}>
+        <Ionicons name="save-outline" size={20} color="#fff" style={{ marginRight: 8 }} />
+        <Text style={styles.buttonText}>Back</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.button} onPress={onRestart}>
+        <Ionicons name="save-outline" size={20} color="#fff" style={{ marginRight: 8 }} />
+        <Text style={styles.buttonText}>Restart</Text>
+      </TouchableOpacity> */}
     </ScrollView>
   );
 }
@@ -177,9 +215,9 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 26,
     fontWeight: 'bold',
-    color: '#1779AE',
-    textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: 15,
+    color: '#2A608F',
+    alignSelf: 'center',
   },
   subtitle: {
     fontSize: 16,
@@ -215,4 +253,24 @@ const styles = StyleSheet.create({
     marginTop: 30,
     gap: 14,
   },
+  button: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'center',
+  backgroundColor: '#1779AE',
+  paddingVertical: 14,
+  paddingHorizontal: 20,
+  borderRadius: 16,
+  marginBottom: 14,
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.1,
+  shadowRadius: 4,
+  elevation: 2, // For Android
+},
+buttonText: {
+  color: '#fff',
+  fontSize: 16,
+  fontWeight: '600',
+},
 });

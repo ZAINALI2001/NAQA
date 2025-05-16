@@ -39,12 +39,12 @@ export default AirFactCarousel;
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#fff',
-    // backgroundColor: '#E5F4FC',
+    backgroundColor: '#ffffffee',
     padding: 10,
     borderRadius: 10,
     marginTop: 15,
     alignItems: 'center',
+    elevation: 2,
   },
   fact: {
     fontSize: 14,
@@ -52,3 +52,4 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 });
+

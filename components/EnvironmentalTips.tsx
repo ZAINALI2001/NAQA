@@ -43,18 +43,20 @@ export default function EnvironmentalTips({ classification }: Props) {
 const styles = StyleSheet.create({
     container: {
         width: '100%',
-        backgroundColor: '#FFFDE7',
         padding: 20,
         marginTop: 20,
         borderRadius: 12,
         borderWidth: 1,
-        borderColor: '#FDD835',
+        backgroundColor: '#F9F9F9',
+        borderColor: '#DDD',
+
     },
     title: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#827717',
-        marginBottom: 10,
+        marginBottom: 15,
+        color: '#2A608F',
+    // alignSelf: 'center',
     },
     tip: {
         fontSize: 15,

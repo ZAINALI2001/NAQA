@@ -46,7 +46,7 @@ export default function StatsComparison({ totalEmissionsTonnes, periodDays }: Pr
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    backgroundColor: '#F1F8E9',
+    backgroundColor: '#F9F9F9',
     borderRadius: 12,
     padding: 20,
     marginTop: 20,
@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 15,
-    color: '#33691E',
+    color: '#2A608F',
     alignSelf: 'center',
   },
   section: {

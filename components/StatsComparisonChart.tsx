@@ -33,7 +33,7 @@ export default function StatsComparisonChart({ totalEmissionsTonnes, periodDays 
           backgroundGradientFrom: '#ffffff',
           backgroundGradientTo: '#ffffff',
           decimalPlaces: 2,
-          color: (opacity = 1) => `rgba(23, 121, 174, ${opacity})`,
+          color: (opacity = 1) => `rgba(27, 94, 32, ${opacity})`, // Dark green tone
           labelColor: () => '#333',
           propsForBackgroundLines: {
             stroke: '#ccc',
@@ -51,10 +51,10 @@ export default function StatsComparisonChart({ totalEmissionsTonnes, periodDays 
 const styles = StyleSheet.create({
   container: {},
   title: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 10,
-    color: '#333',
-    textAlign: 'center',
+    marginBottom: 15,
+    color: '#2A608F',
+    alignSelf: 'center',
   },
 });

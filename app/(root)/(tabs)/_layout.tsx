@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 type TabIconProps = {
@@ -17,8 +17,8 @@ const TabIcon = ({ focused, name, isFirst, isLast }: TabIconProps) => (
         {
           backgroundColor: focused ? '#7fbcdd' : '#DDEDF2',
           borderColor: '#1779AE',
-          borderLeftWidth: isFirst ? 0 : 3,
-          borderRightWidth: isLast ? 0 : 3,
+          borderLeftWidth: isFirst ? 0 : 2,
+          borderRightWidth: isLast ? 0 : 2,
           borderBottomWidth: 0,
         },
       ]}
@@ -53,7 +53,7 @@ export default function TabLayout() {
           tabBarIcon: ({ focused }) => (
             <TabIcon
               focused={focused}
-              name={focused ? 'desktop' : 'desktop-outline'}
+              name={focused ? 'cloud' : 'cloud-outline'}
               isFirst={true}
               isLast={false}
             />
@@ -98,10 +98,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 5,
   },
   iconBox: {
-    width: 133,
+    width: Dimensions.get('window').width / 3, // Responsive width
     height: 70,
     justifyContent: 'center',
     alignItems: 'center',
-    borderTopWidth: 5,
+    borderTopWidth: 4,
   },
 });
