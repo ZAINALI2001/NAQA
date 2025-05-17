@@ -21,6 +21,9 @@ interface AQIThreshold {
   I_high: number;
 }
 
+
+// ...all existing imports remain unchanged
+
 export default function Home() {
   const user = auth.currentUser;
   const [name, setName] = useState('');
@@ -34,7 +37,18 @@ export default function Home() {
   const [aqiThresholds, setAqiThresholds] = useState<AQIThreshold[]>([]);
   const [lastUpdated, setLastUpdated] = useState<string>('');
 
-  // Fetch user name
+  // ✅ Helper to avoid UI flickering on tiny value changes
+  const updateValueIfChanged = (
+    setter: (val: number) => void,
+    current: number | null,
+    next: number,
+    threshold: number = 1
+  ) => {
+    if (current === null || Math.abs(current - next) >= threshold) {
+      setter(Math.round(next));
+    }
+  };
+
   useEffect(() => {
     if (!user) return;
     const fetchUserName = async () => {
@@ -48,7 +62,6 @@ export default function Home() {
     fetchUserName();
   }, [user]);
 
-  // Fetch AQI thresholds
   useEffect(() => {
     const fetchThresholds = async () => {
       const snapshot = await getDocs(collection(dbFirestore, 'AQI'));
@@ -58,7 +71,6 @@ export default function Home() {
     fetchThresholds();
   }, []);
 
-  // Firebase sensor data
   useEffect(() => {
     const dataRef = ref(db, '/AirQuality');
     let lastTimestamp = 0;
@@ -68,32 +80,31 @@ export default function Home() {
       const val = snapshot.val();
       if (!val) return;
 
-      // Always use this to determine if device is connected
       const now = Date.now();
       const heartbeatTime = val.timestamp ? val.timestamp * 1000 : 0;
       lastTimestamp = heartbeatTime;
 
-      // Check if full sensor data is available
       const lastDataPushTime = val.last_data_push ? val.last_data_push * 1000 : 0;
 
-      if (val.temp && val.humid && val.CO2_ppm && val.CO_ppm && val.VOC && lastDataPushTime > 0) {
-        setTemp(Math.round(val.temp));
-        setHumidity(Math.round(val.humid));
-        setCO2(Math.round(val.CO2_ppm));
-        setCO(Math.round(val.CO_ppm));
-        setVOC(Math.round(val.VOC));
+      if (val.temp !== undefined) updateValueIfChanged(setTemp, temp, val.temp);
+      if (val.humid !== undefined) updateValueIfChanged(setHumidity, humidity, val.humid);
+      if (val.CO2_ppm !== undefined) updateValueIfChanged(setCO2, CO2, val.CO2_ppm);
+      if (val.CO_ppm !== undefined) updateValueIfChanged(setCO, CO, val.CO_ppm);
+      if (val.VOC !== undefined) updateValueIfChanged(setVOC, VOC, val.VOC);
 
-        const aqi = calculateAQI(val.CO2_ppm, val.CO_ppm, val.VOC);
+      if (lastDataPushTime > 0) {
+        const aqi = calculateAQI(val.CO2_ppm ?? 0, val.CO_ppm ?? 0, val.VOC ?? 0);
         setProgress(aqi);
         setLastUpdated(moment(lastDataPushTime).format('h:mm A'));
       }
+
+      console.log("🔄 Partial data received:", val);
     });
 
-    // Heartbeat checker — only checks if timestamp is fresh
     heartbeatChecker = setInterval(() => {
       const now = Date.now();
       const diff = now - lastTimestamp;
-      setDeviceConnected(diff < 90000); // 90 seconds tolerance
+      setDeviceConnected(diff < 90000);
     }, 5000);
 
     return () => {
@@ -101,9 +112,6 @@ export default function Home() {
       clearInterval(heartbeatChecker);
     };
   }, [aqiThresholds]);
-
-
-
 
   const calculateAQI = (co2: number, co: number, voc: number): number => {
     const getAQIFromRange = (value: number, gas: string): number => {
@@ -127,14 +135,49 @@ export default function Home() {
     return Math.round(Math.max(co2AQI, coAQI, vocAQI));
   };
 
-  const getAQILabel = (value: number) => {
-    if (value <= 50) return { label: 'Very Good', emoji: '🟢', tip: 'Enjoy the fresh air!' };
-    if (value <= 100) return { label: 'Good', emoji: '🔵', tip: 'Keep windows open.' };
-    if (value <= 200) return { label: 'Fair', emoji: '🟡', tip: 'Limit outdoor activity.' };
-    if (value <= 300) return { label: 'Poor', emoji: '🟠', tip: 'Avoid outdoor exposure.' };
-    if (value <= 400) return { label: 'Very Poor', emoji: '🔴', tip: 'Stay indoors with air purifiers.' };
-    return { label: 'Hazardous', emoji: '🟣', tip: 'Health alert! Remain inside.' };
+const getAQILabel = (value: number) => {
+  if (value <= 50) {
+    return {
+      label: 'Very Good',
+      emoji: '🟢',
+      tip: 'Indoor air is fresh and healthy. Keep it up with light ventilation and occasional airing.'
+    };
+  }
+  if (value <= 100) {
+    return {
+      label: 'Good',
+      emoji: '🔵',
+      tip: 'Air quality is good. Consider opening windows briefly to refresh the air.'
+    };
+  }
+  if (value <= 200) {
+    return {
+      label: 'Fair',
+      emoji: '🟡',
+      tip: 'Avoid burning candles or cooking without ventilation. Use a fan or purifier if available.'
+    };
+  }
+  if (value <= 300) {
+    return {
+      label: 'Poor',
+      emoji: '🟠',
+      tip: 'Limit activities like frying or cleaning with strong chemicals. Run an air purifier.'
+    };
+  }
+  if (value <= 400) {
+    return {
+      label: 'Very Poor',
+      emoji: '🔴',
+      tip: 'Indoor pollution is high. Increase ventilation and turn on a HEPA air purifier.'
+    };
+  }
+  return {
+    label: 'Hazardous',
+    emoji: '🟣',
+    tip: 'Air quality is dangerous. Stop indoor sources (cooking, smoking), seal the room, and use a high-grade purifier.'
   };
+};
+
 
   const AQI = getAQILabel(progress);
 
@@ -152,28 +195,24 @@ export default function Home() {
           <Animated.View entering={FadeInUp.delay(100)} style={styles.headerCard}>
             <Text style={styles.header}>👋 Welcome to Naqa</Text>
           </Animated.View>
-
           <Animated.View entering={FadeInUp.delay(200)} style={styles.card}>
             <Text style={styles.cardTitle}>What is Naqa?</Text>
             <Text style={styles.cardText}>
               Naqa is your smart air companion. It monitors CO₂, CO, VOC, humidity, and temperature in real-time.
             </Text>
           </Animated.View>
-
           <Animated.View entering={FadeInUp.delay(300)} style={styles.card}>
             <Text style={styles.cardTitle}>Why Air Quality Matters</Text>
             <Text style={styles.cardText}>
               Clean air improves your focus, sleep, and overall health. Naqa helps you breathe better every day.
             </Text>
           </Animated.View>
-
           <Animated.View entering={FadeInUp.delay(400)} style={styles.tipCard}>
             <Text style={styles.cardTitle}>Tips for Healthier Air</Text>
             <Text style={styles.cardText}>• Open windows daily</Text>
             <Text style={styles.cardText}>• Avoid indoor smoking</Text>
             <Text style={styles.cardText}>• Add indoor plants 🌿</Text>
           </Animated.View>
-
           <TouchableOpacity style={styles.ctaButton} onPress={() => router.push("/(auth)/sign-in")}>
             <Text style={styles.ctaText}>🔐 Sign In to Begin</Text>
           </TouchableOpacity>
