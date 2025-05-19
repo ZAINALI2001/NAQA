@@ -7,19 +7,19 @@ interface Props {
 }
 
 export default function StatsComparison({ totalEmissionsTonnes, periodDays }: Props) {
-  const globalAnnualAvg = 4.7;
-  const saudiAnnualAvg = 9.5;
+  const globalAnnualAvg = 4.8;
+  const saudiAnnualAvg = 18.9;
   const scale = periodDays / 365;
 
   const globalAvgScaled = parseFloat((globalAnnualAvg * scale).toFixed(2));
   const saudiAvgScaled = parseFloat((saudiAnnualAvg * scale).toFixed(2));
 
-  const getClassification = (value: number): string => {
-    if (value < 3) return '🌱 Excellent';
-    if (value < 7) return '✅ Good';
-    if (value < 12) return '⚠️ Moderate';
-    return '🚨 Poor';
-  };
+  // const getClassification = (value: number): string => {
+  //   if (value < 3) return '🌱 Excellent';
+  //   if (value < 7) return '✅ Good';
+  //   if (value < 12) return '⚠️ Moderate';
+  //   return '🚨 Poor';
+  // };
 
   return (
     <View style={styles.container}>

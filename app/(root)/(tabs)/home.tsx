@@ -1,8 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { Text, View, SafeAreaView, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import {
+  Text, View, SafeAreaView, ScrollView, StyleSheet, TouchableOpacity
+} from 'react-native';
 import { ref, onValue } from 'firebase/database';
-import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
-import { db, auth, firestore as dbFirestore } from '@/includes/FirebaseConfig';
+import {
+  collection, getDocs, doc, getDoc, addDoc
+} from 'firebase/firestore';
+import {
+  db, auth, firestore as dbFirestore
+} from '@/includes/FirebaseConfig';
 import AQISpeedometerDial from '@/components/AQISpeedometerDial';
 import SmartTipBanner from '@/components/SmartTipBanner';
 import EducationSection from '@/components/EducationSection';
@@ -21,11 +27,9 @@ interface AQIThreshold {
   I_high: number;
 }
 
-
-// ...all existing imports remain unchanged
-
 export default function Home() {
   const user = auth.currentUser;
+
   const [name, setName] = useState('');
   const [deviceConnected, setDeviceConnected] = useState(false);
   const [temp, setTemp] = useState<number | null>(null);
@@ -37,12 +41,11 @@ export default function Home() {
   const [aqiThresholds, setAqiThresholds] = useState<AQIThreshold[]>([]);
   const [lastUpdated, setLastUpdated] = useState<string>('');
 
-  // ✅ Helper to avoid UI flickering on tiny value changes
   const updateValueIfChanged = (
     setter: (val: number) => void,
     current: number | null,
     next: number,
-    threshold: number = 1
+    threshold = 1
   ) => {
     if (current === null || Math.abs(current - next) >= threshold) {
       setter(Math.round(next));
@@ -71,16 +74,41 @@ export default function Home() {
     fetchThresholds();
   }, []);
 
+  const storeInAirQualityTable = async (
+    timestamp: number,
+    entries: { gas: string; value: number }[]
+  ) => {
+    const dateStr = new Date(timestamp * 1000).toLocaleString('en-GB', {
+      timeZone: 'Asia/Riyadh',
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    });
+
+    for (const entry of entries) {
+      await addDoc(collection(dbFirestore, 'Air_quality'), {
+        Gas_Name: entry.gas,
+        Real_time_data: parseFloat(entry.value.toFixed(2)),
+        Date_Time: dateStr,
+      });
+
+      // Delay of 1 minute between writes
+      await new Promise(resolve => setTimeout(resolve, 60000));
+    }
+  };
+
   useEffect(() => {
     const dataRef = ref(db, '/AirQuality');
     let lastTimestamp = 0;
     let heartbeatChecker: ReturnType<typeof setInterval>;
 
-    const unsubscribe = onValue(dataRef, (snapshot) => {
+    const unsubscribe = onValue(dataRef, async (snapshot) => {
       const val = snapshot.val();
       if (!val) return;
 
-      const now = Date.now();
       const heartbeatTime = val.timestamp ? val.timestamp * 1000 : 0;
       lastTimestamp = heartbeatTime;
 
@@ -96,6 +124,13 @@ export default function Home() {
         const aqi = calculateAQI(val.CO2_ppm ?? 0, val.CO_ppm ?? 0, val.VOC ?? 0);
         setProgress(aqi);
         setLastUpdated(moment(lastDataPushTime).format('h:mm A'));
+
+        const sensorEntries = [
+          { gas: 'CO2', value: val.CO2_ppm ?? 0 },
+          { gas: 'CO', value: val.CO_ppm ?? 0 },
+          { gas: 'VOC', value: val.VOC ?? 0 },
+        ];
+        await storeInAirQualityTable(val.last_data_push, sensorEntries);
       }
 
       console.log("🔄 Partial data received:", val);
@@ -135,49 +170,14 @@ export default function Home() {
     return Math.round(Math.max(co2AQI, coAQI, vocAQI));
   };
 
-const getAQILabel = (value: number) => {
-  if (value <= 50) {
-    return {
-      label: 'Very Good',
-      emoji: '🟢',
-      tip: 'Indoor air is fresh and healthy. Keep it up with light ventilation and occasional airing.'
-    };
-  }
-  if (value <= 100) {
-    return {
-      label: 'Good',
-      emoji: '🔵',
-      tip: 'Air quality is good. Consider opening windows briefly to refresh the air.'
-    };
-  }
-  if (value <= 200) {
-    return {
-      label: 'Fair',
-      emoji: '🟡',
-      tip: 'Avoid burning candles or cooking without ventilation. Use a fan or purifier if available.'
-    };
-  }
-  if (value <= 300) {
-    return {
-      label: 'Poor',
-      emoji: '🟠',
-      tip: 'Limit activities like frying or cleaning with strong chemicals. Run an air purifier.'
-    };
-  }
-  if (value <= 400) {
-    return {
-      label: 'Very Poor',
-      emoji: '🔴',
-      tip: 'Indoor pollution is high. Increase ventilation and turn on a HEPA air purifier.'
-    };
-  }
-  return {
-    label: 'Hazardous',
-    emoji: '🟣',
-    tip: 'Air quality is dangerous. Stop indoor sources (cooking, smoking), seal the room, and use a high-grade purifier.'
+  const getAQILabel = (value: number) => {
+    if (value <= 50) return { label: 'Very Good', emoji: '🟢', tip: 'Indoor air is fresh and healthy.' };
+    if (value <= 100) return { label: 'Good', emoji: '🔵', tip: 'Air quality is good.' };
+    if (value <= 200) return { label: 'Fair', emoji: '🟡', tip: 'Ventilate if possible.' };
+    if (value <= 300) return { label: 'Poor', emoji: '🟠', tip: 'Use air purifier.' };
+    if (value <= 400) return { label: 'Very Poor', emoji: '🔴', tip: 'Avoid indoor pollutants.' };
+    return { label: 'Hazardous', emoji: '🟣', tip: 'Seal and purify room.' };
   };
-};
-
 
   const AQI = getAQILabel(progress);
 
@@ -187,7 +187,7 @@ const getAQILabel = (value: number) => {
       <Text style={styles.sensorLabel}>{label}</Text>
     </View>
   );
-
+  
   if (!user) {
     return (
       <LinearGradient style={styles.container} colors={['#E5F4FC', '#B3DCF0', '#7FBDDE']}>

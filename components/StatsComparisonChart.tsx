@@ -8,8 +8,8 @@ interface Props {
 }
 
 export default function StatsComparisonChart({ totalEmissionsTonnes, periodDays }: Props) {
-  const globalAnnualAvg = 4.7;
-  const saudiAnnualAvg = 9.5;
+  const globalAnnualAvg = 4.8;
+  const saudiAnnualAvg = 18.9;
   const scale = periodDays / 365;
 
   const globalAvgScaled = parseFloat((globalAnnualAvg * scale).toFixed(2));

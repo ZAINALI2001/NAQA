@@ -15,11 +15,12 @@ import History from '@/components/History';
 import Insights from '@/components/Insights';
 import EditProfile from '@/components/edit-profile';
 import AboutUs from '@/components/AboutUs';
+import AirQualityHistory from '@/components/AirQualityHistory'
 
 const ProfilePage = () => {
   const user = auth.currentUser;
   const [showHistory, setShowHistory] = useState(false);
-  const [showInsights, setShowInsights] = useState(false);
+  const [showAirQualityHistory, setShowAirQualityHistory] = useState(false);
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [showAboutUs, setShowAboutUs] = useState(false);
 
@@ -50,7 +51,7 @@ const ProfilePage = () => {
   }, []);
 
   if (showHistory) return <History onback={() => setShowHistory(false)} />;
-  if (showInsights) return <Insights onback={() => setShowInsights(false)} />;
+  if (showAirQualityHistory) return <AirQualityHistory onback={() => setShowAirQualityHistory(false)} />;
   if (showAboutUs) return <AboutUs onback={() => setShowAboutUs(false)}/>;
   if (showEditProfile) {
     return (
@@ -97,7 +98,7 @@ const ProfilePage = () => {
         <View style={styles.optionsCard}>
           {[
             { title: 'History', action: () => setShowHistory(true) },
-            // { title: 'Insights', action: () => setShowInsights(true) },
+            // { title: 'Air Quality History', action: () => setShowAirQualityHistory(true) },
             { title: 'Edit Profile', action: () => setShowEditProfile(true) },
             // { title: 'Settings', action: () => {} },
             { title: 'About Us', action: () => {setShowAboutUs(true)} },
