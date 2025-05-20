@@ -48,7 +48,7 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        name="home"
+        name="AQI"
         options={{
           tabBarIcon: ({ focused }) => (
             <TabIcon
